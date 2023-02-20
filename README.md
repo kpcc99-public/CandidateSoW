@@ -2,7 +2,7 @@ Please Update ConnectionStrings(DbConnection) from appsettings.Development.json 
 
 --CandidateSOW_API_publish.zip --API pudlished Files
 
---CandidateSoW_20022023_1930 --Latest API Source
+--CandidateSoW_20022023_1930.zip --Latest API Source
 
 --SOW_Db_17022023_OnlySchema --SOW_Db Schema script
 
