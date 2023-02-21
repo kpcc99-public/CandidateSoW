@@ -4,8 +4,6 @@ Please Update ConnectionStrings(DbConnection) from appsettings.Development.json 
 
 --CandidateSoW_20022023_1930.zip --Latest API Source
 
---SOW_Db_17022023_OnlySchema --SOW_Db Schema script
+--SOW_Db_Schema.sql --SOW_Db Schema script
 
---SOW_Db_17022023_MaterData --SOW_Db Mater Table Data script
-
---SOW_Db_17022023_BasicData --SOW_Db Admin User And Permissions Data script
+--SOW_Db_Data.sql --SOW_Db Table Data script
