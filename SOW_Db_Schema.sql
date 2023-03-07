@@ -1518,3 +1518,163 @@ USE [master]
 GO
 ALTER DATABASE [SOW_Db] SET  READ_WRITE 
 GO
+
+
+
+-- Changes On 07/03/2023 from reshma
+
+EXEC sp_rename 'Status.isDeleted', 'IsDeleted', 'COLUMN';
+Go
+EXEC sp_rename 'Candidate.isDeleted', 'IsDeleted', 'COLUMN';
+Go
+
+Alter Table [dbo].[Status]
+Add [StatusType] Varchar(20)
+GO
+
+Update [dbo].[Status] Set [StatusType] = 'SO'
+
+INSERT INTO [dbo].[Status] ([StatusName] ,[IsDeleted],[StatusType])
+VALUES('Joined',0,'Candidate')
+INSERT INTO [dbo].[Status] ([StatusName] ,[IsDeleted],[StatusType])
+VALUES('Cancelled',0,'Candidate')
+INSERT INTO [dbo].[Status] ([StatusName] ,[IsDeleted],[StatusType])
+VALUES('Rejected',0,'Candidate')
+
+
+UPDATE [dbo].[Candidate]   
+SET Candidate.[Status] = Status.[StatusId]
+FROM [dbo].[Candidate]     
+INNER JOIN [dbo].[Status]  ON Candidate.[Status] = Status.[StatusName]
+
+
+Alter Table [dbo].[Candidate]
+Alter Column [Status] Int Not null
+
+
+ALTER TABLE [dbo].[Candidate]  WITH CHECK ADD  CONSTRAINT [FK_Candidate_Status] FOREIGN KEY([Status])
+REFERENCES [dbo].[Status] ([StatusId])
+GO
+
+
+
+USE [SOW_Db]
+GO
+
+/****** Object:  StoredProcedure [dbo].[Status_proc]    Script Date: 06-03-2023 17:21:49 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+ALTER procedure [dbo].[Status_proc]
+(
+	@StatusId	int,
+	@StatusName nvarchar(100),
+	@Type		nvarchar(100),
+	@StatusType	nvarchar(100)
+)
+AS 
+BEGIN
+	IF(@Type='post')
+	BEGIN 
+		INSERT INTO Status(StatusName, [StatusType] ) VALUES (@StatusName, @StatusType)
+	END
+
+	ELSE IF(@Type='get')    
+	BEGIN    
+		SELECT * FROM Status where Isnull(IsDeleted,0) = 0 And UPPER([StatusType]) = UPPER(@StatusType) order by StatusId desc    
+	END   
+
+	ELSE IF(@Type='getid')    
+	BEGIN    
+		SELECT * FROM Status where StatusId = @StatusId
+	END 
+
+	ELSE IF(@Type='update')    
+	BEGIN    
+		update Status SET StatusName = @StatusName where StatusId = @StatusId
+	END
+
+	ELSE IF(@Type='Delete')    
+	BEGIN    
+	 update Status SET IsDeleted = 1 where StatusId = @StatusId
+	END 
+END
+GO
+
+USE [SOW_Db]
+GO
+/****** Object:  StoredProcedure [dbo].[Technology_proc]    Script Date: 06-03-2023 17:23:23 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+        
+ALTER procedure [dbo].[Technology_proc]      
+(      
+@TechnologyId int,      
+@TechnologyName nvarchar(100),   
+@DomainId int,
+@Type nvarchar(100)      
+)      
+AS BEGIN      
+IF(@Type='post')      
+BEGIN INSERT INTO Technology(TechnologyName,DomainId)
+VALUES(@TechnologyName,@DomainId)      
+END      
+   
+
+ELSE IF(@Type='get')          
+BEGIN          
+  SELECT TechnologyId, TechnologyName, tech.DomainId, DomainName FROM Technology tech
+  Inner Join Domain On Tech.DomainId = Domain.DomainId
+  where Isnull(tech.isDeleted,0) = 0 order by TechnologyId desc          
+END         
+      
+ 
+ELSE IF(@Type='getid')          
+BEGIN          
+  SELECT * FROM Technology where TechnologyId=@TechnologyId        
+END       
+   
+ELSE IF(@Type='update')          
+BEGIN          
+update Technology SET       
+      
+TechnologyName=@TechnologyName, DomainId=@DomainId  where TechnologyId=@TechnologyId    
+END      
+
+        
+ELSE IF(@Type='Delete')          
+BEGIN          
+ --DELETE FROM Technology  where TechnologyId=@TechnologyId   
+  update Technology SET IsDeleted=1 where TechnologyId=@TechnologyId   
+END       
+      
+      
+END
+GO
+
+USE [SOW_Db]
+GO
+/****** Object:  StoredProcedure [dbo].[usp_getAllCandidateData]    Script Date: 06-03-2023 17:22:54 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER procedure [dbo].[usp_getAllCandidateData]
+as
+begin
+set nocount on
+select CandidateId,CandidateName,MobileNo,DOB,EmailId,Location,Skills,JoiningDate,IsInternal,Address,B.StatusName Status,Pincode,Gender
+from Candidate A
+Inner Join [dbo].[Status] B On A.Status = B.StatusId
+where Isnull(A.IsDeleted, 0) = 0 order by CandidateId desc
+
+end
+Go
